@@ -16,7 +16,7 @@ public class UploadFile {
 	protected String mimeType;
 	protected String name;
 	protected File file;
-	//User a supplier to avoid creating unnecessary streams
+	//Use a supplier to avoid creating unnecessary streams
 	protected Supplier<InputStream> streamProvider;
 	
 	public UploadFile() {}
