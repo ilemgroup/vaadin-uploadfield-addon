@@ -331,9 +331,16 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 	public Upload getUpload() {
 		return upload;
 	}
+	
+	public File getTempDirectory() {
+        return tempDirectory;
+    }
 
+    public void setTempDirectory(File tempDirectory) {
+        this.tempDirectory = tempDirectory;
+    }
 
-	@Override
+    @Override
 	public File createFile(String fileName) throws IOException {
 		if(tempDirectory == null) {
 			tempDirectory = Files.createTempDirectory(TEMP_FILE_PREFIX).toFile();

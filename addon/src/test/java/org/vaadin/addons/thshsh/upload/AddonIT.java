@@ -1,4 +1,4 @@
-package org.vaadin.addons.thshsh.easyrender;
+package org.vaadin.addons.thshsh.upload;
 
 import com.vaadin.flow.component.html.testbench.DivElement;
 import org.junit.Assert;

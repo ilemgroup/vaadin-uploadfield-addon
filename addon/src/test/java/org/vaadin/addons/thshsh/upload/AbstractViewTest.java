@@ -1,4 +1,4 @@
-package org.vaadin.addons.thshsh.easyrender;
+package org.vaadin.addons.thshsh.upload;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.Assert;
