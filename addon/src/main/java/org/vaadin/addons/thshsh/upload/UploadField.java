@@ -49,18 +49,20 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 	public static final String CSS_CLASS_REMOVE = "remove";
 	public static final String CSS_CLASS_FILE = "file";
 
-	protected Receiver receiver;
-	protected UploadFieldBuffer receiverBuffer;
+
 	protected Upload upload;
-	protected Boolean allowDuplicateNames = false;
 	protected List<UploadFile> files;
 	protected Map<UploadFile, FlexComponent> fileLayouts;
 	protected VerticalLayout layout;
-	protected Integer maxFiles;
-	protected Integer adjustMaxFiles = 0;
-	protected Boolean multipleFilesSupported;	
-	protected Boolean preserveFileNames = false;
 	protected File tempDirectory;
+	protected Boolean multipleFilesSupported;
+	protected Integer adjustMaxFiles = 0;
+	
+	protected Receiver receiver;
+    protected UploadFieldBuffer receiverBuffer;
+	protected Boolean allowDuplicateNames = false;
+	protected Boolean preserveFileNames = false;
+	protected Integer maxFiles;
 
 	public UploadField() {
 		this(null);
@@ -104,6 +106,10 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 		return upload.getReceiver();
 	}
 
+	/**
+	 * Max files allowed. default is null (no limit).
+	 * @param maxFiles
+	 */
 	public void setMaxFiles(Integer maxFiles) {
 	    if(!multipleFilesSupported && maxFiles > 1) throw new IllegalArgumentException("Reciver Type "+receiver.getClass()+" does not support multiple files");
 		upload.setMaxFiles(maxFiles != null ? maxFiles + adjustMaxFiles : null);
@@ -114,6 +120,11 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 		return maxFiles;
 	}
 
+	/**
+     * See {@link com.vaadin.flow.component.upload.Upload#setMaxFileSize()}
+     * 
+     * @param autoUpload
+     */
 	public void setMaxFileSize(int maxFileSize) { 
 		upload.setMaxFileSize(maxFileSize);
 	}
@@ -122,6 +133,11 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 		return upload.getMaxFileSize();
 	}
 
+	/**
+	 * See {@link com.vaadin.flow.component.upload.Upload#setAutoUpload(boolean)}
+	 * 
+	 * @param autoUpload
+	 */
 	public void setAutoUpload(boolean autoUpload) {
 		upload.setAutoUpload(autoUpload);
 	}
@@ -134,7 +150,32 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 		return upload.getAcceptedFileTypes();
 	}
 
-	protected void handleAllFinishedEvent(AllFinishedEvent e) {
+
+	public Boolean getAllowDuplicateNames() {
+        return allowDuplicateNames;
+    }
+
+	/**
+	 * Whether or not to allow duplicate file names. If false then files will be overwritten when names are duplicated. Default is false.
+	 * @param allowDuplicateNames
+	 */
+    public void setAllowDuplicateNames(Boolean allowDuplicateNames) {
+        this.allowDuplicateNames = allowDuplicateNames;
+    }
+    
+    public Boolean getPreserveFileNames() {
+        return preserveFileNames;
+    }
+
+    /**
+     * Whether or not to preserve uploaded file names when creating temp files. default is false.
+     * @param preserveFileNames
+     */
+    public void setPreserveFileNames(Boolean preserveFileNames) {
+        this.preserveFileNames = preserveFileNames;
+    }
+
+    protected void handleAllFinishedEvent(AllFinishedEvent e) {
 		this.removeClassName(CSS_CLASS_INPROGRESS);
 		upload.removeClassName(CSS_CLASS_INPROGRESS);
 	}
@@ -227,7 +268,7 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 				fileLayouts.remove(file);
 			}
 			/* NOTE this is a hack to handle max files
-			 * Because we cannot actually remove files from native UI component, all we can do is 
+			 * Because we cannot actually remove file elements from native UI component, all we can do is 
 			 * allow more files when files are removed from the custom field wrapper
 			 */
 			if(maxFiles > 1) {
@@ -246,7 +287,6 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 
 	@Override
 	protected List<UploadFile> generateModelValue() {
-		LOGGER.debug("generateModelValue");
 		return List.copyOf(files);
 	}
 
@@ -257,11 +297,7 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 
 	@Override
 	protected void setPresentationValue(List<UploadFile> newPresentationValue) {
-
-		LOGGER.debug("setPresentationValue: {}", newPresentationValue);
-
-		if (newPresentationValue == null)
-			newPresentationValue = List.of();
+		if (newPresentationValue == null)newPresentationValue = List.of();
 
 		List<UploadFile> toAdd = new ArrayList<>(newPresentationValue);
 		toAdd.removeAll(files);
