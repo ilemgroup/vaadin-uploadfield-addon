@@ -108,7 +108,6 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 
 	/**
 	 * Max files allowed. default is null (no limit).
-	 * @param maxFiles
 	 */
 	public void setMaxFiles(Integer maxFiles) {
 	    if(!multipleFilesSupported && maxFiles > 1) throw new IllegalArgumentException("Reciver Type "+receiver.getClass()+" does not support multiple files");
@@ -121,9 +120,8 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 	}
 
 	/**
-     * See {@link com.vaadin.flow.component.upload.Upload#setMaxFileSize()}
+     * See {@link com.vaadin.flow.component.upload.Upload#setMaxFileSize(int)}
      * 
-     * @param autoUpload
      */
 	public void setMaxFileSize(int maxFileSize) { 
 		upload.setMaxFileSize(maxFileSize);
@@ -135,8 +133,6 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 
 	/**
 	 * See {@link com.vaadin.flow.component.upload.Upload#setAutoUpload(boolean)}
-	 * 
-	 * @param autoUpload
 	 */
 	public void setAutoUpload(boolean autoUpload) {
 		upload.setAutoUpload(autoUpload);
@@ -157,7 +153,6 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 
 	/**
 	 * Whether or not to allow duplicate file names. If false then files will be overwritten when names are duplicated. Default is false.
-	 * @param allowDuplicateNames
 	 */
     public void setAllowDuplicateNames(Boolean allowDuplicateNames) {
         this.allowDuplicateNames = allowDuplicateNames;
@@ -169,7 +164,6 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 
     /**
      * Whether or not to preserve uploaded file names when creating temp files. default is false.
-     * @param preserveFileNames
      */
     public void setPreserveFileNames(Boolean preserveFileNames) {
         this.preserveFileNames = preserveFileNames;
@@ -217,7 +211,6 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 	 * This only gets called from the setvalue methods and operates directly on the
 	 * internal list
 	 * 
-	 * @param uf
 	 */
 	protected void addFile(UploadFile uf) {
 
