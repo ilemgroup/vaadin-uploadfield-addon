@@ -1,24 +1,37 @@
 package org.vaadin.addons.thshsh.upload;
 
 import java.io.File;
+import java.io.InputStream;
+import java.util.function.Supplier;
+
+import com.vaadin.flow.component.upload.receivers.FileData;
 
 
-
+/**
+ * Bean class to hold properties of an uploaded file
+ *
+ */
 public class UploadFile {
 
-	String mimeType;
-	String name;
-	byte[] data;
-	File file;
+	protected String mimeType;
+	protected String name;
+	protected File file;
+	//User a supplier to avoid creating unnecessary streams
+	protected Supplier<InputStream> streamProvider;
 	
 	public UploadFile() {}
 
-	public UploadFile(String name, String mimeType, byte[] data,File f) {
+	public UploadFile(FileData fileData, Supplier<InputStream> stream) {
 		super();
-		this.name = name;
-		this.mimeType = mimeType;
-		this.data = data;
-		this.file = f;
+		this.name = fileData.getFileName();
+		this.mimeType = fileData.getMimeType();
+		this.streamProvider = stream;
+		try {
+            this.file = fileData.getFile();
+        } 
+		catch (UnsupportedOperationException e) {
+            //the receiver is a in-memory implementation
+        }
 	}
 
 	public String getMimeType() {
@@ -29,16 +42,12 @@ public class UploadFile {
 		return name;
 	}
 
-	public byte[] getData() {
-		return data;
-	}
+	public Supplier<InputStream> getStream() {
+        return streamProvider;
+    }
 
-	public File getFile() {
+    public File getFile() {
 		return file;
-	}
-
-	public boolean hasData() {
-		return data != null;
 	}
 
 	@Override
@@ -48,8 +57,6 @@ public class UploadFile {
 		builder.append(mimeType);
 		builder.append(", name=");
 		builder.append(name);
-		builder.append(", data=");
-		builder.append(data==null?null:data.length);
 		builder.append(", file=");
 		builder.append(file);
 		builder.append("]");

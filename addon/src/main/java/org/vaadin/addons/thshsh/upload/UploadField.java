@@ -2,7 +2,6 @@ package org.vaadin.addons.thshsh.upload;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +30,8 @@ import com.vaadin.flow.component.upload.Receiver;
 import com.vaadin.flow.component.upload.StartedEvent;
 import com.vaadin.flow.component.upload.SucceededEvent;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.FileBuffer;
-import com.vaadin.flow.component.upload.receivers.FileData;
 import com.vaadin.flow.component.upload.receivers.FileFactory;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.component.upload.receivers.MultiFileBuffer;
-import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 
 @SuppressWarnings("serial")
 @CssImport(value = "upload-field.css")
@@ -45,7 +39,9 @@ import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 @CssImport(value = "upload-field-vaadin-upload-file.css", themeFor = "vaadin-upload-file")
 public class UploadField extends CustomField<List<UploadFile>> implements FileFactory {
 
-	public static final Logger LOGGER = LoggerFactory.getLogger(UploadField.class);
+	protected static final String TEMP_FILE_PREFIX = "upload_field_";
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(UploadField.class);
 
 	public static final String CSS_CLASS_INPROGRESS = "in-progress";
 	public static final String CSS_CLASS = "upload-field";
@@ -54,6 +50,7 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 	public static final String CSS_CLASS_FILE = "file";
 
 	protected Receiver receiver;
+	protected UploadFieldBuffer receiverBuffer;
 	protected Upload upload;
 	protected Boolean allowDuplicateNames = false;
 	protected List<UploadFile> files;
@@ -61,9 +58,8 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 	protected VerticalLayout layout;
 	protected Integer maxFiles;
 	protected Integer adjustMaxFiles = 0;
-	protected Boolean multipleFiles;
-	
-	protected Boolean preserveFileNames = true;
+	protected Boolean multipleFilesSupported;	
+	protected Boolean preserveFileNames = false;
 	protected File tempDirectory;
 
 	public UploadField() {
@@ -73,7 +69,10 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 	public UploadField(Receiver receiver) {
 		if(receiver == null) receiver = new MultiFileBuffer(this);
 		this.receiver = receiver;
-		this.multipleFiles = receiver instanceof MultiFileReceiver;
+		this.multipleFilesSupported = receiver instanceof MultiFileReceiver;
+        if(receiver instanceof UploadFieldBuffer) receiverBuffer = (UploadFieldBuffer) receiver;
+        else receiverBuffer = new ReflectionUploadFieldBuffer(receiver);
+        
 		this.addClassName(CSS_CLASS);
 
 		fileLayouts = new HashMap<>();
@@ -96,7 +95,8 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 
 		this.setValue(List.of());
 		
-		if(!multipleFiles) this.setMaxFiles(1); 
+		if(!multipleFilesSupported) this.setMaxFiles(1); 
+	
 
 	}
 
@@ -105,7 +105,7 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 	}
 
 	public void setMaxFiles(Integer maxFiles) {
-	    if(!multipleFiles && maxFiles > 1) throw new IllegalArgumentException("Reciver Type "+receiver.getClass()+" does not support multiple files");
+	    if(!multipleFilesSupported && maxFiles > 1) throw new IllegalArgumentException("Reciver Type "+receiver.getClass()+" does not support multiple files");
 		upload.setMaxFiles(maxFiles != null ? maxFiles + adjustMaxFiles : null);
 		this.maxFiles = maxFiles;
 	}
@@ -153,52 +153,18 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 		handleUploadFile(e.getFileName());
 	}
 
+	
+	
 	protected void handleUploadFile(String name) {
 
 		LOGGER.debug("handleUploadFile: {}", name);
 
-		FileData fileData;
-		InputStream stream = null;
-		File file = null;
-		byte[] data = null;
-
-		if (receiver instanceof MultiFileMemoryBuffer) {
-			MultiFileMemoryBuffer buffer = (MultiFileMemoryBuffer) receiver;
-			fileData = buffer.getFileData(name);
-			stream = buffer.getInputStream(name);
-		} else if (receiver instanceof MultiFileBuffer) {
-			MultiFileBuffer buffer = (MultiFileBuffer) receiver;
-			fileData = buffer.getFileData(name);
-			file = fileData.getFile();
-		} else if (receiver instanceof MemoryBuffer) {
-			MemoryBuffer buffer = (MemoryBuffer) receiver;
-			fileData = buffer.getFileData();
-			stream = buffer.getInputStream();
-		} else if (receiver instanceof FileBuffer) {
-		    FileBuffer buffer = (FileBuffer) receiver;
-            fileData = buffer.getFileData();
-            file = fileData.getFile();
-		} else {
-			throw new IllegalArgumentException("Unknown receiever type: " + receiver.getClass());
-		}
-
-		try {
-			if (stream != null) {
-				data = IOUtils.toByteArray(stream);
-			}
-			UploadFile uf = new UploadFile(fileData.getFileName(), fileData.getMimeType(), data, file);
-			List<UploadFile> newValue = new ArrayList<>(files);
-			newValue.add(uf);
-			setValue(newValue);
-
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
+		UploadFile file = new UploadFile(receiverBuffer.getFileData(name), () -> receiverBuffer.getInputStream(name));
+		List<UploadFile> newValue = new ArrayList<>(files);
+        newValue.add(file);
+        setValue(newValue);
 	}
 
-    /*protected FileData getFileData(String name) {
-        
-    }*/
 	
 	protected void handleRemoveFile(UploadFile file) {
 		List<UploadFile> newValue = new ArrayList<>(files);
@@ -230,7 +196,6 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 		fileLayout.setPadding(true);
 		fileLayout.addClassName(CSS_CLASS_FILE);
 		fileLayout.setWidthFull();
-		//		fileLayout.setJustifyContentMode(JustifyContentMode.BETWEEN);
 		layout.add(fileLayout);
 
 		fileLayouts.put(uf, fileLayout);
@@ -265,7 +230,7 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 			 * Because we cannot actually remove files from native UI component, all we can do is 
 			 * allow more files when files are removed from the custom field wrapper
 			 */
-			if(multipleFiles) {
+			if(maxFiles > 1) {
     			if (maxFiles != null) {
     				adjustMaxFiles++;
     				setMaxFiles(maxFiles);
@@ -331,17 +296,16 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 		return upload;
 	}
 
-	
 
 	@Override
 	public File createFile(String fileName) throws IOException {
 		if(tempDirectory == null) {
-			tempDirectory = Files.createTempDirectory("upload_field_"+hashCode()).toFile();
+			tempDirectory = Files.createTempDirectory(TEMP_FILE_PREFIX).toFile();
 		}
 		File tempFile;
-		
 		if(preserveFileNames) tempFile = new File(tempDirectory,fileName);
-		else tempFile = Files.createTempFile(tempDirectory.toPath(), "upload_file", "."+FilenameUtils.getExtension(fileName)).toFile();
+		else tempFile = Files.createTempFile(tempDirectory.toPath(), TEMP_FILE_PREFIX, FilenameUtils.EXTENSION_SEPARATOR+FilenameUtils.getExtension(fileName)).toFile();
 		return tempFile;
 	}
+	
 }
