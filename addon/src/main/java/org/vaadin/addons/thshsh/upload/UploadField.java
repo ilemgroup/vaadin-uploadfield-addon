@@ -34,9 +34,9 @@ import com.vaadin.flow.component.upload.receivers.FileFactory;
 import com.vaadin.flow.component.upload.receivers.MultiFileBuffer;
 
 @SuppressWarnings("serial")
-@CssImport(value = "upload-field.css")
-@CssImport(value = "upload-field-vaadin-upload.css", themeFor = "vaadin-upload")
-@CssImport(value = "upload-field-vaadin-upload-file.css", themeFor = "vaadin-upload-file")
+@CssImport(value = "./upload-field.css")
+@CssImport(value = "./upload-field-vaadin-upload.css", themeFor = "vaadin-upload")
+@CssImport(value = "./upload-field-vaadin-upload-file.css", themeFor = "vaadin-upload-file")
 public class UploadField extends CustomField<List<UploadFile>> implements FileFactory {
 
 	protected static final String TEMP_FILE_PREFIX = "upload_field_";
