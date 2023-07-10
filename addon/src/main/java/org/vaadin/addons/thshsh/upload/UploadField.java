@@ -153,8 +153,11 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 
 	/**
 	 * Whether or not to allow duplicate file names. If false then files will be overwritten when names are duplicated. Default is false.
+	 * This property and {@link org.vaadin.addons.thshsh.upload.UploadField#preserveFileNames} are mutually exclusive because 
+	 * the file names will collide on the file system.
 	 */
     public void setAllowDuplicateNames(Boolean allowDuplicateNames) {
+        if(preserveFileNames && allowDuplicateNames) throw new IllegalStateException("Cannot allow duplicate file names while also preserving file names on filesystem");
         this.allowDuplicateNames = allowDuplicateNames;
     }
     
@@ -166,6 +169,7 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
      * Whether or not to preserve uploaded file names when creating temp files. default is false.
      */
     public void setPreserveFileNames(Boolean preserveFileNames) {
+        if(allowDuplicateNames && preserveFileNames) throw new IllegalStateException("Cannot allow duplicate file names while also preserving file names on filesystem");
         this.preserveFileNames = preserveFileNames;
     }
 
@@ -264,8 +268,8 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 			 * Because we cannot actually remove file elements from native UI component, all we can do is 
 			 * allow more files when files are removed from the custom field wrapper
 			 */
-			if(maxFiles > 1) {
-    			if (maxFiles != null) {
+			if (maxFiles != null) {
+				if(maxFiles > 1) {
     				adjustMaxFiles++;
     				setMaxFiles(maxFiles);
     			}
