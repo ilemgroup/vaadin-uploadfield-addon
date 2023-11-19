@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -64,6 +66,8 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 	protected Boolean preserveFileNames = false;
 	protected Integer maxFiles;
 
+	protected Consumer<UploadFile> previewSupplier;
+
 	public UploadField() {
 		this(null);
 	}
@@ -100,6 +104,10 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 		if(!multipleFilesSupported) this.setMaxFiles(1); 
 	
 
+	}
+
+	public void setPreviewSupplier(Consumer<UploadFile> previewSupplier) {
+		this.previewSupplier = previewSupplier;
 	}
 
 	public Receiver getReceiver() {
@@ -198,7 +206,7 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 
 		LOGGER.debug("handleUploadFile: {}", name);
 
-		UploadFile file = new UploadFile(receiverBuffer.getFileData(name), () -> receiverBuffer.getInputStream(name));
+		UploadFile file = new UploadFile(null, receiverBuffer.getFileData(name), () -> receiverBuffer.getInputStream(name));
 		List<UploadFile> newValue = new ArrayList<>(files);
         newValue.add(file);
         setValue(newValue);
@@ -238,6 +246,14 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 
 		fileLayouts.put(uf, fileLayout);
 
+		if ( previewSupplier != null ) {
+			Button preview = new Button(VaadinIcon.SEARCH.create());
+			preview.addClassName("check");
+			preview.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+			fileLayout.add(preview);
+			preview.addClickListener(e -> previewSupplier.accept(uf));
+		}
+
 		Icon i = VaadinIcon.CHECK_CIRCLE_O.create();
 		i.addClassName("check");
 		fileLayout.add(i);
@@ -250,7 +266,6 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 		rem.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 		fileLayout.add(rem);
 		rem.addClickListener(e -> handleRemoveFile(uf));
-
 	}
 
 	protected void removeFile(UploadFile file) {

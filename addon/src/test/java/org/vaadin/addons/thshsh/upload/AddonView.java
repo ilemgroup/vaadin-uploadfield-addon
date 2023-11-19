@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Hr;
@@ -36,7 +37,7 @@ public class AddonView extends VerticalLayout {
         field.setAutoUpload(false);  //default is true
         
         //Can set values without data to allow user to manipulate
-        List<UploadFile> files = List.of(new UploadFile(new FileData("serverfile.txt","txt",new ByteArrayOutputStream()),null));
+        List<UploadFile> files = List.of(new UploadFile(null,new FileData( "serverfile.txt", "txt", new ByteArrayOutputStream()), null));
         field.setValue(files);
         
         add(new Span(MemoryBuffer.class.getSimpleName()+", AutoUpload=true, MaxFiles=1"));

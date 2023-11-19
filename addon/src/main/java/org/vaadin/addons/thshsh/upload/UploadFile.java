@@ -16,13 +16,15 @@ public class UploadFile {
 	protected String mimeType;
 	protected String name;
 	protected File file;
+	protected String id;
 	//Use a supplier to avoid creating unnecessary streams
 	protected Supplier<InputStream> streamProvider;
 	
 	public UploadFile() {}
 
-	public UploadFile(FileData fileData, Supplier<InputStream> stream) {
+	public UploadFile(String id, FileData fileData, Supplier<InputStream> stream) {
 		super();
+		this.id =id;
 		this.name = fileData.getFileName();
 		this.mimeType = fileData.getMimeType();
 		this.streamProvider = stream;
@@ -48,6 +50,10 @@ public class UploadFile {
 
     public File getFile() {
 		return file;
+	}
+
+	public String getId() {
+		return id;
 	}
 
 	@Override
