@@ -6,12 +6,12 @@
 
     <groupId>org.vaadin.addons.thshsh</groupId>
     <artifactId>uploadfield</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1a-SNAPSHOT</version>
     <name>UploadField</name>
     <description>UploadField Add-on for Vaadin</description>
 
     <properties>
-        <vaadin.version>24.2.3</vaadin.version>
+        <vaadin.version>24.2.4</vaadin.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
