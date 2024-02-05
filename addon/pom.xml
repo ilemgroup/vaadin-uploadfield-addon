@@ -6,7 +6,7 @@
 
     <groupId>org.vaadin.addons.thshsh</groupId>
     <artifactId>uploadfield</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>UploadField</name>
     <description>UploadField Add-on for Vaadin</description>
 
