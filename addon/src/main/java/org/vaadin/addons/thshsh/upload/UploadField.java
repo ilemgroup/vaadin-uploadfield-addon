@@ -1,5 +1,6 @@
 package org.vaadin.addons.thshsh.upload;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,6 +12,10 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.StreamRegistration;
+import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.VaadinSession;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +72,7 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 	protected Integer maxFiles;
 
 	protected Consumer<UploadFile> previewSupplier;
+	protected Consumer<UploadFile> downloadSupplier;
 
 	public UploadField() {
 		this(null);
@@ -108,6 +114,10 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 
 	public void setPreviewSupplier(Consumer<UploadFile> previewSupplier) {
 		this.previewSupplier = previewSupplier;
+	}
+
+	public void setDownloadSupplier(Consumer<UploadFile> downloadSupplier) {
+		this.downloadSupplier = downloadSupplier;
 	}
 
 	public Receiver getReceiver() {
@@ -252,6 +262,13 @@ public class UploadField extends CustomField<List<UploadFile>> implements FileFa
 			preview.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 			fileLayout.add(preview);
 			preview.addClickListener(e -> previewSupplier.accept(uf));
+		}
+		if ( downloadSupplier != null ) {
+			Button download = new Button(VaadinIcon.DOWNLOAD.create());
+			download.addClassName("download");
+			download.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+			fileLayout.add(download);
+			download.addClickListener(e -> downloadSupplier.accept(uf));
 		}
 
 		Icon i = VaadinIcon.CHECK_CIRCLE_O.create();
